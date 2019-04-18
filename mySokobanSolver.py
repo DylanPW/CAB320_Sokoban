@@ -200,9 +200,10 @@ class SokobanPuzzle(search.Problem):
         self.initial = ((warehouse.worker),) + tuple(warehouse.boxes)
         self.targets = warehouse.targets
         self.taboo_list = taboo_cells(warehouse)
-        self.macro = macro
-        self.allow_taboo_push = allow_taboo_push
-
+        self.macro = False
+        self.allow_taboo_push = False;  
+        
+    # function for the availible actions
     def actions(self, state):
         """
         Return the list of actions that can be executed in the given state.
@@ -214,7 +215,7 @@ class SokobanPuzzle(search.Problem):
         # actions = ['Left', 'Down', 'Right', 'Up']
         actions = []
 
-        if self.macro:
+        if !self.allow_taboo_push:
             adjacent_cell_up = cell_adjacent(state[0], "Up")
             adjacent_cell_down = cell_adjacent(state[0], "Down")
             adjacent_cell_left = cell_adjacent(state[0], "Left")
@@ -254,7 +255,7 @@ class SokobanPuzzle(search.Problem):
 
             return actions
 
-        else:
+        elif self.allow_taboo_push;
             #for the elementary with no macro
         # if !self.macro or self.allow_taboo_push:
             adjacent_cell_up = cell_adjacent(state[0], "Up")
@@ -263,152 +264,154 @@ class SokobanPuzzle(search.Problem):
             adjacent_cell_right = cell_adjacent(state[0], "Right")
 
             # check if valid cell is above.
-            if adjacent_cell_up not in self.warehouse.walls and adjacent_cell_up not in state[1:]:
+            if adjacent_cell_up not in self.warehouse.walls and adjacent_cell_up not in state:
                 actions += ("Up")
-            elif adjacent_cell_up in state[1:]:
+            elif adjacent_cell_up in state:
                 adjacent_box_up = cell_adjacent(adjacent_cell_up, "Up")
-                if adjacent_box_up not in self.warehouse.walls and adjacent_box_up not in state[1:]:
+                if adjacent_box_up not in self.warehouse.walls and adjacent_box_up not in state:
                     actions+= ("Up")
 
             # check if valid cell is below.
-            if adjacent_cell_down not in self.warehouse.walls and adjacent_cell_down not in state[1:]:
+            if adjacent_cell_down not in self.warehouse.walls and adjacent_cell_down not in state:
                 actions += ("Down")
-            elif adjacent_cell_down in state[1:]:
+            elif adjacent_cell_down in state:
                 adjacent_box_down = cell_adjacent(adjacent_cell_down, "Down")
-                if adjacent_box_down not in self.warehouse.walls and adjacent_box_down not in state[1:]:
+                if adjacent_box_down not in self.warehouse.walls and adjacent_box_down not in state:
                     actions+= ("Down")
 
             # check if valid cell is to the left
-            if adjacent_cell_left not in self.warehouse.walls and adjacent_cell_left not in state[1:]:
+            if adjacent_cell_left not in self.warehouse.walls and adjacent_cell_left not in state:
                 actions += ("Left")
-            elif adjacent_cell_left in state[1:]:
+            elif adjacent_cell_left in state:
                 adjacent_box_left = cell_adjacent(adjacent_cell_left, "Left")
-                if adjacent_box_left not in self.warehouse.walls and adjacent_box_left not in state[1:]:
+                if adjacent_box_left not in self.warehouse.walls and adjacent_box_left not in state:
                     actions+= ("Left")
 
             # check if valid cell is to the right
-            if adjacent_cell_right not in self.warehouse.walls and adjacent_cell_right not in state[1:]:
+            if adjacent_cell_right not in self.warehouse.walls and adjacent_cell_right not in state:
                 actions += ("Right")
-            elif adjacent_cell_right in state[1:]:
+            elif adjacent_cell_right in state:
                 adjacent_box_right = cell_adjacent(adjacent_cell_right, "Right")
-                if adjacent_box_right not in self.warehouse.walls and adjacent_box_right not in state[1:]:
+                if adjacent_box_right not in self.warehouse.walls and adjacent_box_right not in state:
                     actions+= ("Right")
 
             return actions
 
+    # function for checm
     def result(self, state, action):
-        #Assert that the action is legal
+        # assert the action is doable in the current state
         assert action in self.actions(state)
-
         new_state = ()
         new_state = copy.deepcopy(state)
 
-        # Checks if the worker is pushing a box
-        if cell_in_direction(state[0], action) in state[1:]:
+        # Check if worker is pushing a box
+        if cell_adjacent(state[0], action) in state[1:]:
             i = 1
-            # Finds which box the worker pushes
+            #find box being pushed
             for box in state[1:]:
-                # If current box is getting pushed, get the direction and update its new position
-                if cell_in_direction(state[0], action) == box:
+                # get direction and new position of box
+                if cell_adjacent(state[0], action) == box:
                     new_state_list = list(new_state)
-                    new_state_list[i] = cell_in_direction(box, action)
+                    new_state_list[i] = cell_adjacent(box, action)
                     new_state = tuple(new_state_list)
                     break
                 i += 1
 
             new_state_list = list(new_state)
-            # When the box's position is updated, move the worker where the box was.
-            new_state_list[0] = cell_in_direction(state[0], action)
+            # move the worker to where the box used to be before being pushed
+            new_state_list[0] = cell_adjacent(state[0], action)
             new_state = tuple(new_state_list)
 
-        # If the worker does not push a box, update the worker's position
+        # if not pushing a box update the position
         else:
             new_state_list = list(new_state)
-            # Move the worker to the cell in that direction
-            new_state_list[0] = cell_in_direction(state[0], action)
+            # move the worker
+            new_state_list[0] = cell_adjacent(state[0], action)
             new_state = tuple(new_state_list)
 
-        # Place the worker at the first position of the tuple, and add the boxes
+        # add the worker, then the box locations.
         new_state = (new_state[0],) + tuple(sorted(new_state[1:]))
 
+        # return the new state of the puzzle
         return new_state
 
-
+    # check if the goal state is reached
     def goal_test(self, state):
-        # Counts amount of boxes on target
+        # test how many boxes are on targets
         num_box_on_target = 0
         for box in state[1:]:
             if box in self.targets:
                 num_box_on_target += 1
 
-        # Goal is reached if amount of boxes on target is the same as amount of boxes
+        # return if all boxes are on targets.
         if num_box_on_target == len(state)-1:
             return True
         else:
-           return False
+            return False
 
+    # return the value of the shortest length
     def value(self, state):
 
-        # TODO: THIS PART NEEDS TO BE FIXED
-        # There must be an equal number of targets and boxes
+        # assert that there are an equal number of targets and boxes
         assert(len(state)-1 == len(self.targets))
 
+        # variables used 
         value = 0
         first = True
         dist = 0
         boxes = []
         boxes = copy.deepcopy(state[1:])
-        target_list = []
-        target_list = copy.deepcopy(self.wh.targets)
+        list_of_targets = []
+        list_of_targets = copy.deepcopy(self.warehouse.targets)
         min_dist = 0
 
         box_targets_dist = []
         temp_list = []
 
-        # Gets all the boxes coordinates, and targets coordinates,
-        # and finds the boxes distance from all of the targets for the current puzzle
+        # get box and target coordinates and find distance from each other
         for box in boxes:
-            # Separate the box's x, y coordinates
+            # get box x and y
             box_x = box[0]
             box_y = box[1]
 
             for target in target_list:
-                # Separate the target's x,y coordinates
+                # get target x and y
                 target_x = target[0]
                 target_y = target[1]
 
-                # Find the diagonal distance (via hypotenus)
-                dist = math.sqrt((box_x - target_x)**2 + (box_y - target_y)**2)
+                # use pythag to find distance
+                distance = math.sqrt((box_x - target_x)**2 + (box_y - target_y)**2)
 
-                temp_list += box
-                temp_list += target
-                temp_list += [dist,]
-                box_targets_dist += [temp_list,]
-                temp_list = []
+                temp += box
+                temp += target
+                temp += [distance,]
+                box_targets_distance += [temp,]
+                temp = []
 
         # Goes through the different distances and finds the shortest distance for each box
-        while box_targets_dist:
-            temp_trio = box_targets_dist[0]
+        while box_targets_distance:
+            temp_trio = box_targets_distance[0]
 
-            for i in range(0, len(box_targets_dist)):
+            for i in range(0, len(box_targets_distance)):
                 if i == 0:
-                    min_dist = box_targets_dist[0][4]
-                if box_targets_dist[i][4] < min_dist:
-                    min_dist = box_targets_dist[i][4]
-                    temp_trio = box_targets_dist[i]
+                    min_distance = box_targets_distance[0][4]
+                if box_targets_distance[i][4] < min_distance:
+                    min_distance = box_targets_distance[i][4]
+                    temp_trio = box_targets_distance[i]
 
             # Add the minimal distance to value
-            value += min_dist
+            value += min_distance
 
             # Loops until the shortest distance for each box is found.
-            # If boxA has shortest distance to targetB. Remove targetB from the list and BoxA
             i = 0
-            while i < len(box_targets_dist):
-                trio = box_targets_dist[i]
+            while i < len(box_targets_distance):
+                trio = box_targets_distance[i]
                 if (trio[0] == temp_trio[0] and trio[1] == temp_trio[1]) or (trio[2] == temp_trio[2] and trio[3] == temp_trio[3]):
-                    box_targets_dist.remove(trio)
+                    box_targets_distance.remove(trio)
                     i -= 1
                 i += 1
+
+        # return the value
         return value
 
 
