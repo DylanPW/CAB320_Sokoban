@@ -480,41 +480,54 @@ def can_go_there(warehouse, dst):
       False otherwise
     '''
 
-    x, y = zip(*warehouse.walls)
 
-    x_size, y_size = 1 + max(x), 1 + max(y)
 
     if warehouse.worker == dst:
         return True
     else:
-        explored_locations = []
-
-        frontier = [warehouse.worker,]
         
+        x, y = zip(*warehouse.walls)
+
+        x_size, y_size = 1 + max(x), 1 + max(y)
+
+        # add the starting position to the frontier
+        explored_locations = []
+        frontier = [warehouse.worker]
+        
+        # get the maximum values of the x and y in the warehouse
+        x_wall = list(zip(*warehouse.walls))[0]
+        y_wall = list(zip(*warehouse.walls))[1]
+        max_x = list(range(max(x_wall) + 1))
+        max_y = list(range(max(y_wall) + 1))
+        all_xy = list(itertools.product(max_x,max_y))
+
+
         for cell in frontier:
+
             # check if the cell being explored is not a wall, box, outside the map or previously explored
-            if cell not in warehouse and cell not in warehouse.boxes and cell not in explored_locations and cell[0] > 0 and cell[0] < x_size and cell[1] > 0 and cell[1] < y_size:
+            if cell not in all_xy and cell not in warehouse.boxes and cell not in explored_locations and cell[0] > 0 and cell[0] < x_size and cell[1] > 0 and cell[1] < y_size:
+                # check if the cell is the target and return true if so
                 if tuple(cell) == dst:
                     return True
-                
+
                 temp_cell = cell_adjacent(cell, "Up")
-
                 if temp_cell not in warehouse.walls and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
-                    frontier +=  [list(cell_adjacent(cell, "Up")),]
+                    frontier +=  [list(cell_adjacent(cell, "Up"))]
 
-                # temp_cell = cell_adjacent(cell, "Down")
-                # if temp_cell not in warehouse.walls, and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
-                #     frontier +=  [list(cell_adjacent(cell, "Down")),]
+                temp_cell = cell_adjacent(cell, "Down")
+                if temp_cell not in warehouse.walls and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
+                    frontier +=  [list(cell_adjacent(cell, "Down"))]
 
-                # temp_cell = cell_adjacent(cell, "Left")
-                # if temp_cell not in warehouse.walls, and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
-                #     frontier +=  [list(cell_adjacent(cell, "Left")),]
+                temp_cell = cell_adjacent(cell, "Left")
+                if temp_cell not in warehouse.walls and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
+                    frontier +=  [list(cell_adjacent(cell, "Left"))]
 
-                # temp_cell = cell_adjacent(cell, "Right")
-                # if temp_cell not in warehouse.walls, and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
-                #     frontier +=  [list(cell_adjacent(cell, "Right")),]    
+                temp_cell = cell_adjacent(cell, "Right")
+                if temp_cell not in warehouse.walls and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
+                    frontier +=  [list(cell_adjacent(cell, "Right"))]    
 
         explored_locations += [cell]
+        
     return False
 
 
