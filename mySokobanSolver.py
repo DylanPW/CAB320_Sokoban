@@ -215,7 +215,7 @@ class SokobanPuzzle(search.Problem):
         # actions = ['Left', 'Down', 'Right', 'Up']
         actions = []
 
-        if !self.allow_taboo_push:
+        if self.allow_taboo_push:
             adjacent_cell_up = cell_adjacent(state[0], "Up")
             adjacent_cell_down = cell_adjacent(state[0], "Down")
             adjacent_cell_left = cell_adjacent(state[0], "Left")
@@ -255,7 +255,7 @@ class SokobanPuzzle(search.Problem):
 
             return actions
 
-        elif self.allow_taboo_push;
+        elif self.allow_taboo_push:
             #for the elementary with no macro
         # if !self.macro or self.allow_taboo_push:
             adjacent_cell_up = cell_adjacent(state[0], "Up")
@@ -480,9 +480,44 @@ def can_go_there(warehouse, dst):
       False otherwise
     '''
 
-    ##         "INSERT YOUR CODE HERE"
+    x, y = zip(*warehouse.walls)
 
-    raise NotImplementedError()
+    x_size, y_size = 1 + max(x), 1 + max(y)
+
+    if warehouse.worker == dst:
+        return True
+    else:
+        explored_locations = []
+
+        frontier = [warehouse.worker,]
+        
+        for cell in frontier:
+            # check if the cell being explored is not a wall, box, outside the map or previously explored
+            if cell not in warehouse and cell not in warehouse.boxes and cell not in explored_locations and cell[0] > 0 and cell[0] < x_size and cell[1] > 0 and cell[1] < y_size:
+                if tuple(cell) == dst:
+                    return True
+                
+                temp_cell = cell_adjacent(cell, "Up")
+
+                if temp_cell not in warehouse.walls and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
+                    frontier +=  [list(cell_adjacent(cell, "Up")),]
+
+                # temp_cell = cell_adjacent(cell, "Down")
+                # if temp_cell not in warehouse.walls, and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
+                #     frontier +=  [list(cell_adjacent(cell, "Down")),]
+
+                # temp_cell = cell_adjacent(cell, "Left")
+                # if temp_cell not in warehouse.walls, and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
+                #     frontier +=  [list(cell_adjacent(cell, "Left")),]
+
+                # temp_cell = cell_adjacent(cell, "Right")
+                # if temp_cell not in warehouse.walls, and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
+                #     frontier +=  [list(cell_adjacent(cell, "Right")),]    
+
+        explored_locations += [cell]
+    return False
+
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
