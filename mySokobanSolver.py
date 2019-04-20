@@ -88,7 +88,6 @@ def taboo_cells(warehouse):
 
     corners = []
     next_walls = []
-    print(warehouse.targets)
 
 
     for cells in floor:
@@ -120,7 +119,6 @@ def taboo_cells(warehouse):
             if (x, y - 1) in warehouse.walls:
                 next_walls.append(cells)
 
-    print(corners)
 
 
     ##Remove floor cells in the same row or column as target
@@ -144,6 +142,81 @@ def taboo_cells(warehouse):
     return map
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def taboo_coords(warehouse):
+    '''
+    Identify the taboo coords of a warehouse.
+
+    '''
+
+    ##Floor check
+
+    x_wall = list(zip(*warehouse.walls))[0]
+    y_wall = list(zip(*warehouse.walls))[1]
+    max_x = max(x_wall) + 1
+    max_y = max(y_wall) + 1
+    perm_x = list(range(max_x))
+    perm_y = list(range(max_y))
+    all_xy = list(itertools.product(perm_x,perm_y))
+
+    floor = []
+
+    for coord in all_xy:
+        row = coord[0]
+        wall_at_row = [wall for wall in warehouse.walls if wall[0] == row]
+        wall_column = list(zip(*wall_at_row))[1]
+        if coord[1] < max(wall_column) and coord[1] > min(wall_column):
+            floor.append(coord)
+
+
+
+    ##Corner check
+
+    corners = []
+    next_walls = []
+
+
+    for cells in floor:
+        x, y = cells[0], cells[1]
+        if cells not in warehouse.worker and cells not in warehouse.targets and cells not in warehouse.boxes:
+            if (x + 1, y) in warehouse.walls and (x, y + 1) in warehouse.walls:
+                corners.append(cells)
+
+            elif (x + 1, y) in warehouse.walls and (x, y - 1) in warehouse.walls:
+                corners.append(cells)
+
+            elif (x - 1, y) in warehouse.walls and (x, y - 1) in warehouse.walls:
+                corners.append(cells)
+
+            elif (x - 1, y) in warehouse.walls and (x, y + 1) in warehouse.walls:
+                corners.append(cells)
+
+        ## Wall Check
+        if cells not in warehouse.worker and cells not in warehouse.targets and cells not in warehouse.boxes:
+            if (x + 1, y) in warehouse.walls:
+                next_walls.append(cells)
+
+            if (x - 1, y) in warehouse.walls:
+                next_walls.append(cells)
+
+            if (x, y + 1) in warehouse.walls:
+                next_walls.append(cells)
+
+            if (x, y - 1) in warehouse.walls:
+                next_walls.append(cells)
+
+
+
+    ##Remove floor cells in the same row or column as target
+    for target in warehouse.targets:
+        next_walls = [next for next in next_walls if next[0] != target[0] and next[1] != target[1]]
+
+    coords = corners + next_walls
+
+    return coords
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 #Function to check if there is an adjacent cell
 def cell_adjacent(cell, direction):
 
@@ -199,10 +272,10 @@ class SokobanPuzzle(search.Problem):
         self.warehouse = warehouse
         self.initial = ((warehouse.worker),) + tuple(warehouse.boxes)
         self.targets = warehouse.targets
-        self.taboo_list = taboo_cells(warehouse)
+        self.taboo_list = taboo_coords(warehouse)
         self.macro = False
-        self.allow_taboo_push = False;  
-        
+        self.allow_taboo_push = True;
+
     # function for the availible actions
     def actions(self, state):
         """
@@ -213,89 +286,68 @@ class SokobanPuzzle(search.Problem):
         what type of list of actions is to be returned.
         """
         # actions = ['Left', 'Down', 'Right', 'Up']
-        actions = []
 
-        if self.allow_taboo_push:
-            adjacent_cell_up = cell_adjacent(state[0], "Up")
-            adjacent_cell_down = cell_adjacent(state[0], "Down")
-            adjacent_cell_left = cell_adjacent(state[0], "Left")
-            adjacent_cell_right = cell_adjacent(state[0], "Right")
 
+        adjacent_cell_up = cell_adjacent(state[0], "Up")
+        adjacent_cell_down = cell_adjacent(state[0], "Down")
+        adjacent_cell_left = cell_adjacent(state[0], "Left")
+        adjacent_cell_right = cell_adjacent(state[0], "Right")
+
+        if not self.macro:
+            worker_actions = []
             # check if valid cell is above.
             if adjacent_cell_up not in self.warehouse.walls and adjacent_cell_up not in state[1:]:
-                actions += ("Up")
-            elif adjacent_cell_up in state[1:]:
-                adjacent_box_up = cell_adjacent(adjacent_cell_up, "Up")
-                if adjacent_box_up not in self.taboo_list and adjacent_box_up not in self.warehouse.walls and adjacent_box_up not in state[1:]:
-                    actions+= ("Up")
+                worker_actions.append ("Up")
 
             # check if valid cell is below.
             if adjacent_cell_down not in self.warehouse.walls and adjacent_cell_down not in state[1:]:
-                actions += ("Down")
-            elif adjacent_cell_down in state[1:]:
-                adjacent_box_down = cell_adjacent(adjacent_cell_down, "Down")
-                if adjacent_box_down not in self.taboo_list and adjacent_box_down not in self.warehouse.walls and adjacent_box_down not in state[1:]:
-                    actions+= ("Down")
+                worker_actions.append("Down")
 
             # check if valid cell is to the left
             if adjacent_cell_left not in self.warehouse.walls and adjacent_cell_left not in state[1:]:
-                actions += ("Left")
-            elif adjacent_cell_left in state[1:]:
-                adjacent_box_left = cell_adjacent(adjacent_cell_left, "Left")
-                if adjacent_box_left not in self.taboo_list and adjacent_box_left not in self.warehouse.walls and adjacent_box_left not in state[1:]:
-                    actions+= ("Left")
+                worker_actions.append("Left")
 
             # check if valid cell is to the right
             if adjacent_cell_right not in self.warehouse.walls and adjacent_cell_right not in state[1:]:
-                actions += ("Right")
-            elif adjacent_cell_right in state[1:]:
-                adjacent_box_right = cell_adjacent(adjacent_cell_right, "Right")
-                if adjacent_box_right not in self.taboo_list and adjacent_box_right not in self.warehouse.walls and adjacent_box_right not in state[1:]:
-                    actions+= ("Right")
+                worker_actions.append("Right")
 
+            return worker_actions
+
+        else:
+            box = []
+            box_all = []
+            if not self.allow_taboo_push:
+                for boxes in state[1:]:
+                    adjacent_box_up = cell_adjacent(adjacent_cell_up, "Up")
+                    if adjacent_box_up not in self.taboo_list and adjacent_box_up not in self.warehouse.walls and adjacent_box_up not in state[1:]:
+                        box.append("Up")
+                    adjacent_box_down = cell_adjacent(adjacent_cell_up, "Down")
+                    if adjacent_box_down not in self.taboo_list and adjacent_box_down not in self.warehouse.walls and adjacent_box_down not in state[1:]:
+                        box.append("Down")
+                    adjacent_box_left = cell_adjacent(adjacent_cell_up, "Left")
+                    if adjacent_box_left not in self.taboo_list and adjacent_box_left not in self.warehouse.walls and adjacent_box_left not in state[1:]:
+                        box.append("Left")
+                    adjacent_box_right = cell_adjacent(adjacent_cell_right, "Right")
+                    if adjacent_box_right not in self.taboo_list and adjacent_box_right not in self.warehouse.walls and adjacent_box_right not in state[1:]:
+                        box.append("Right")
+                    box_all.append(box)
+            else:
+                for boxes in state[1:]:
+                    adjacent_box_up = cell_adjacent(adjacent_cell_up, "Up")
+                    if adjacent_box_up not in self.warehouse.walls and adjacent_box_up not in state[1:]:
+                        box.append("Up")
+                    adjacent_box_down = cell_adjacent(adjacent_cell_up, "Down")
+                    if adjacent_box_down not in self.warehouse.walls and adjacent_box_down not in state[1:]:
+                        box.append("Down")
+                    adjacent_box_left = cell_adjacent(adjacent_cell_up, "Left")
+                    if adjacent_box_left not in self.warehouse.walls and adjacent_box_left not in state[1:]:
+                        box.append("Left")
+                    adjacent_box_right = cell_adjacent(adjacent_cell_right, "Right")
+                    if adjacent_box_right not in self.warehouse.walls and adjacent_box_right not in state[1:]:
+                        box.append("Right")
+                    box_all.append(box)
             return actions
 
-        elif self.allow_taboo_push:
-            #for the elementary with no macro
-        # if !self.macro or self.allow_taboo_push:
-            adjacent_cell_up = cell_adjacent(state[0], "Up")
-            adjacent_cell_down = cell_adjacent(state[0], "Down")
-            adjacent_cell_left = cell_adjacent(state[0], "Left")
-            adjacent_cell_right = cell_adjacent(state[0], "Right")
-
-            # check if valid cell is above.
-            if adjacent_cell_up not in self.warehouse.walls and adjacent_cell_up not in state:
-                actions += ("Up")
-            elif adjacent_cell_up in state:
-                adjacent_box_up = cell_adjacent(adjacent_cell_up, "Up")
-                if adjacent_box_up not in self.warehouse.walls and adjacent_box_up not in state:
-                    actions+= ("Up")
-
-            # check if valid cell is below.
-            if adjacent_cell_down not in self.warehouse.walls and adjacent_cell_down not in state:
-                actions += ("Down")
-            elif adjacent_cell_down in state:
-                adjacent_box_down = cell_adjacent(adjacent_cell_down, "Down")
-                if adjacent_box_down not in self.warehouse.walls and adjacent_box_down not in state:
-                    actions+= ("Down")
-
-            # check if valid cell is to the left
-            if adjacent_cell_left not in self.warehouse.walls and adjacent_cell_left not in state:
-                actions += ("Left")
-            elif adjacent_cell_left in state:
-                adjacent_box_left = cell_adjacent(adjacent_cell_left, "Left")
-                if adjacent_box_left not in self.warehouse.walls and adjacent_box_left not in state:
-                    actions+= ("Left")
-
-            # check if valid cell is to the right
-            if adjacent_cell_right not in self.warehouse.walls and adjacent_cell_right not in state:
-                actions += ("Right")
-            elif adjacent_cell_right in state:
-                adjacent_box_right = cell_adjacent(adjacent_cell_right, "Right")
-                if adjacent_box_right not in self.warehouse.walls and adjacent_box_right not in state:
-                    actions+= ("Right")
-
-            return actions
 
     # function for checm
     def result(self, state, action):
@@ -355,7 +407,7 @@ class SokobanPuzzle(search.Problem):
         # assert that there are an equal number of targets and boxes
         assert(len(state)-1 == len(self.targets))
 
-        # variables used 
+        # variables used
         value = 0
         first = True
         dist = 0
@@ -374,7 +426,7 @@ class SokobanPuzzle(search.Problem):
             box_x = box[0]
             box_y = box[1]
 
-            for target in target_list:
+            for target in list_of_targets:
                 # get target x and y
                 target_x = target[0]
                 target_y = target[1]
@@ -440,9 +492,21 @@ def check_action_seq(warehouse, action_seq):
                string returned by the method  Warehouse.__str__()
     '''
 
-    ##         "INSERT YOUR CODE HERE"
+    puzzle = SokobanPuzzle(warehouse)
+    placehold = puzzle.initial
 
-    raise NotImplementedError()
+    legal_actions = puzzle.actions(placehold)
+    if len(legal_actions) < len(action_seq):
+        return "Failure"
+
+    for action in action_seq:
+        if action in puzzle.actions(placehold):
+            placehold = puzzle.result(placehold, action)
+
+    puzzle.warehouse.worker = placehold[0]
+    puzzle.warehouse.boxes = placehold[1:]
+
+    return puzzle.warehouse.__str__()
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -485,7 +549,7 @@ def can_go_there(warehouse, dst):
     if warehouse.worker == dst:
         return True
     else:
-        
+
         x, y = zip(*warehouse.walls)
 
         x_size, y_size = 1 + max(x), 1 + max(y)
@@ -493,7 +557,7 @@ def can_go_there(warehouse, dst):
         # add the starting position to the frontier
         explored_locations = []
         frontier = [warehouse.worker]
-        
+
         # get the maximum values of the x and y in the warehouse
         x_wall = list(zip(*warehouse.walls))[0]
         y_wall = list(zip(*warehouse.walls))[1]
@@ -524,10 +588,10 @@ def can_go_there(warehouse, dst):
 
                 temp_cell = cell_adjacent(cell, "Right")
                 if temp_cell not in warehouse.walls and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
-                    frontier +=  [list(cell_adjacent(cell, "Right"))]    
+                    frontier +=  [list(cell_adjacent(cell, "Right"))]
 
         explored_locations += [cell]
-        
+
     return False
 
 

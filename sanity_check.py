@@ -42,7 +42,7 @@ def test_check_elem_action_seq():
     wh = Warehouse()
     wh.load_warehouse("./warehouses/warehouse_01.txt")
     # first test
-    answer = check_action_seq(wh, ['Right', 'Right','Down'])
+    answer = check_action_seq(wh, ['Right','Right','Down'])
     expected_answer = '####  \n# .#  \n#  ###\n#*   #\n#  $@#\n#  ###\n####  '
     fcn = test_check_elem_action_seq    
     print('<<  First test of {} >>'.format(fcn.__name__))
@@ -145,8 +145,8 @@ def test_solve_sokoban_macro():
 if __name__ == "__main__":
     pass    
     print(my_team())  # should print your team
-    # test_taboo_cells() 
-#    test_check_elem_action_seq()
+    test_taboo_cells() 
+    test_check_elem_action_seq()
 #    test_solve_sokoban_elem()
-    test_can_go_there()
+#    test_can_go_there()
     # test_solve_sokoban_macro()   
