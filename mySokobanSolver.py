@@ -21,6 +21,7 @@ SokobanPuzzle.macro = False
 # you have to use the 'search.py' file provided
 # as your code will be tested with this specific file
 import search
+from search import astar_graph_search
 import sokoban
 import itertools
 import math
@@ -231,6 +232,41 @@ def cell_adjacent(cell, direction):
 
     elif direction == "Down":
         return(cell[0], cell[1] + 1)
+
+# function to add two tuples
+def add_tuples(tuple1, tuple2):
+    return tuple1[0] + tuple2[0], tuple1[1] + tuple2[1]
+
+# find the path 
+class FindPathProblem(search.Problem):   
+
+    def __init__(self, initial, warehouse, goal=None):
+        self.initial = initial
+        self.goal = goal
+        self.warehouse = warehouse
+
+    # each movement has a cost of one
+    def value(self, state):
+        return 1  
+
+
+    # return the new state with the relevant action applied
+    def result(self, state, action):
+        
+        new_state = add_tuples(state, action)
+        return new_state
+
+    # availible actions
+    def actions(self, state):
+        #list of offsets by coordinates (left, right, down, up)
+        offsets = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        for offset in offsets:
+            new_state = add_tuples(state, offset)
+            # Check that the location isn't a wall or box
+            if new_state not in self.warehouse.boxes \
+                    and new_state not in self.warehouse.walls:
+                yield offset
 
 class SokobanPuzzle(search.Problem):
     '''
@@ -544,56 +580,20 @@ def can_go_there(warehouse, dst):
       False otherwise
     '''
 
+    def heuristic(n):
+        state = n.state
+            # distance formula heuristic (sqrt(xdiff^2 + ydiff^2).
+        return math.sqrt(((state[1] - dst[1]) ** 2) + ((state[0] - dst[0]) ** 2))
 
+    dst = (dst[1], dst[0]) 
+    # destination is given in (row,col), not (x,y)
 
-    if warehouse.worker == dst:
-        return True
-    else:
+    # use an A* graph search on the using the find path problem search.
+    cell = astar_graph_search(FindPathProblem(warehouse.worker, warehouse, dst),
+                    heuristic)
 
-        x, y = zip(*warehouse.walls)
-
-        x_size, y_size = 1 + max(x), 1 + max(y)
-
-        # add the starting position to the frontier
-        explored_locations = []
-        frontier = [warehouse.worker]
-
-        # get the maximum values of the x and y in the warehouse
-        x_wall = list(zip(*warehouse.walls))[0]
-        y_wall = list(zip(*warehouse.walls))[1]
-        max_x = list(range(max(x_wall) + 1))
-        max_y = list(range(max(y_wall) + 1))
-        all_xy = list(itertools.product(max_x,max_y))
-
-
-        for cell in frontier:
-
-            # check if the cell being explored is not a wall, box, outside the map or previously explored
-            if cell not in all_xy and cell not in warehouse.boxes and cell not in explored_locations and cell[0] > 0 and cell[0] < x_size and cell[1] > 0 and cell[1] < y_size:
-                # check if the cell is the target and return true if so
-                if tuple(cell) == dst:
-                    return True
-
-                temp_cell = cell_adjacent(cell, "Up")
-                if temp_cell not in warehouse.walls and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
-                    frontier +=  [list(cell_adjacent(cell, "Up"))]
-
-                temp_cell = cell_adjacent(cell, "Down")
-                if temp_cell not in warehouse.walls and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
-                    frontier +=  [list(cell_adjacent(cell, "Down"))]
-
-                temp_cell = cell_adjacent(cell, "Left")
-                if temp_cell not in warehouse.walls and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
-                    frontier +=  [list(cell_adjacent(cell, "Left"))]
-
-                temp_cell = cell_adjacent(cell, "Right")
-                if temp_cell not in warehouse.walls and temp_cell not in warehouse.boxes and temp_cell not in explored_locations and temp_cell[0] > 0 and temp_cell[0] < x_size and temp_cell[1] > 0 and temp_cell[1] < y_size:
-                    frontier +=  [list(cell_adjacent(cell, "Right"))]
-
-        explored_locations += [cell]
-
-    return False
-
+    # return the cell if it is valid
+    return cell is not None
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
