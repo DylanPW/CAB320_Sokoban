@@ -627,18 +627,17 @@ def solve_sokoban_macro(warehouse):
 
     #Does A* search with predefined heuristic in the SokobanPuzzle()
     solution = search.astar_graph_search(puzzle)
-        
+    
+    #retrieves the target position and direction the box is moved at each step    
     macro = []
-    for node in solution.path()[1:]:
-        macro.append((node.parent,node.action))
+    for node in solution.path()[1:-1]:
+        macro.append((tuple([int(s) for s in str(node)[7:-2][::-1] if s.isdigit()][:-2]),node.action))
     
     #Checks if there is a solution
     if not solution:
         return ["Impossible"]
     else:
+    #if the puzzle is already solved macro will equal []
         return macro
-    ##         "INSERT YOUR CODE HERE"
-
-    raise NotImplementedError()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
