@@ -72,10 +72,13 @@ def taboo_cells(warehouse):
     max_y = max(y_wall) + 1
     perm_x = list(range(max_x))
     perm_y = list(range(max_y))
+
+    ##Lists all possible x and y combinations
     all_xy = list(itertools.product(perm_x,perm_y))
 
     floor = []
 
+    ##Checks if a empty cell is within two walls or not
     for coord in all_xy:
         row = coord[0]
         wall_at_row = [wall for wall in warehouse.walls if wall[0] == row]
@@ -90,33 +93,44 @@ def taboo_cells(warehouse):
     corners = []
     next_walls = []
 
-
+    ##Checks cells adjacent to the checked node to see if there are two walls connected to each other
     for cells in floor:
         x, y = cells[0], cells[1]
         if cells not in warehouse.worker and cells not in warehouse.targets and cells not in warehouse.boxes:
+
+            #If there is a wall bellow and to the right
             if (x + 1, y) in warehouse.walls and (x, y + 1) in warehouse.walls:
                 corners.append(cells)
 
+            #If there is a wall above and to the right
             elif (x + 1, y) in warehouse.walls and (x, y - 1) in warehouse.walls:
                 corners.append(cells)
 
+            #If there is a wall above and to the left
             elif (x - 1, y) in warehouse.walls and (x, y - 1) in warehouse.walls:
                 corners.append(cells)
 
+            #If there is a wall bellow and to the left
             elif (x - 1, y) in warehouse.walls and (x, y + 1) in warehouse.walls:
                 corners.append(cells)
 
         ## Wall Check
+        ##Checks if there is a wall next to a node
         if cells not in warehouse.worker and cells not in warehouse.targets and cells not in warehouse.boxes:
+
+            #If there is a wall to the right
             if (x + 1, y) in warehouse.walls:
                 next_walls.append(cells)
 
+            #If there is a wall to the left
             if (x - 1, y) in warehouse.walls:
                 next_walls.append(cells)
 
+            #If there is a wall bellow
             if (x, y + 1) in warehouse.walls:
                 next_walls.append(cells)
 
+            #If there is a wall above
             if (x, y - 1) in warehouse.walls:
                 next_walls.append(cells)
 
@@ -127,6 +141,8 @@ def taboo_cells(warehouse):
         next_walls = [next for next in next_walls if next[0] != target[0] and next[1] != target[1]]
 
     map = ""
+
+    ##Maps out the warehouse according to coordinates
     for y in range(max_y):
         for x in range(max_x):
             if (x,y) in warehouse.walls:
@@ -147,7 +163,7 @@ def taboo_cells(warehouse):
 def taboo_coords(warehouse):
     '''
     Identify the taboo coords of a warehouse.
-
+    Same as above minus the mapping of the warehouse
     '''
 
     ##Floor check
@@ -329,6 +345,7 @@ class SokobanPuzzle(search.Problem):
         adjacent_cell_left = cell_adjacent(state[0], "Left")
         adjacent_cell_right = cell_adjacent(state[0], "Right")
 
+        #Checking of macro is true
         if not self.macro:
             worker_actions = []
             # check if valid cell is above.
@@ -352,33 +369,57 @@ class SokobanPuzzle(search.Problem):
         else:
             box = []
             box_all = []
+            #Checking if boxes are allowed in taboo area
             if not self.allow_taboo_push:
                 for boxes in state[1:]:
-                    adjacent_box_up = cell_adjacent(adjacent_cell_up, "Up")
+
+                    # check if valid cell is above.
+                    adjacent_box_up = cell_adjacent(boxes, "Up")
+                    #Checks if there is a taboo square or wall or box in next cell
                     if adjacent_box_up not in self.taboo_list and adjacent_box_up not in self.warehouse.walls and adjacent_box_up not in state[1:]:
                         box.append("Up")
-                    adjacent_box_down = cell_adjacent(adjacent_cell_up, "Down")
+
+                    # check if valid cell is bellow.
+                    adjacent_box_down = cell_adjacent(boxes, "Down")
+                    #Checks if there is a taboo square or wall or box in next cell
                     if adjacent_box_down not in self.taboo_list and adjacent_box_down not in self.warehouse.walls and adjacent_box_down not in state[1:]:
                         box.append("Down")
-                    adjacent_box_left = cell_adjacent(adjacent_cell_up, "Left")
+
+                    # check if valid cell is to the left
+                    adjacent_box_left = cell_adjacent(boxes, "Left")
+                    #Checks if there is a taboo square or wall or box in next cell
                     if adjacent_box_left not in self.taboo_list and adjacent_box_left not in self.warehouse.walls and adjacent_box_left not in state[1:]:
                         box.append("Left")
-                    adjacent_box_right = cell_adjacent(adjacent_cell_right, "Right")
+
+                    # check if valid cell is to the right
+                    adjacent_box_right = cell_adjacent(boxes, "Right")
+                    #Checks if there is a taboo square or wall or box in next cell
                     if adjacent_box_right not in self.taboo_list and adjacent_box_right not in self.warehouse.walls and adjacent_box_right not in state[1:]:
                         box.append("Right")
                     box_all.append(box)
             else:
                 for boxes in state[1:]:
-                    adjacent_box_up = cell_adjacent(adjacent_cell_up, "Up")
+                    # check if valid cell is above.
+                    adjacent_box_up = cell_adjacent(boxes, "Up")
+                    #Checks if there is a or wall or box in next cell
                     if adjacent_box_up not in self.warehouse.walls and adjacent_box_up not in state[1:]:
                         box.append("Up")
-                    adjacent_box_down = cell_adjacent(adjacent_cell_up, "Down")
+
+                    # check if valid cell is bellow.
+                    adjacent_box_down = cell_adjacent(boxes, "Down")
+                    #Checks if there is a or wall or box in next cell
                     if adjacent_box_down not in self.warehouse.walls and adjacent_box_down not in state[1:]:
                         box.append("Down")
-                    adjacent_box_left = cell_adjacent(adjacent_cell_up, "Left")
+
+                    # check if valid cell is to the left.
+                    adjacent_box_left = cell_adjacent(boxes, "Left")
+                    #Checks if there is a or wall or box in next cell
                     if adjacent_box_left not in self.warehouse.walls and adjacent_box_left not in state[1:]:
                         box.append("Left")
-                    adjacent_box_right = cell_adjacent(adjacent_cell_right, "Right")
+
+                    # check if valid cell is to the right.
+                    adjacent_box_right = cell_adjacent(boxes, "Right")
+                    #Checks if there is a or wall or box in next cell
                     if adjacent_box_right not in self.warehouse.walls and adjacent_box_right not in state[1:]:
                         box.append("Right")
                     box_all.append(box)
@@ -529,21 +570,27 @@ def check_action_seq(warehouse, action_seq):
                the sequence of actions.  This must be the same string as the
                string returned by the method  Warehouse.__str__()
     '''
-
+    #set up puzzle
     puzzle = SokobanPuzzle(warehouse)
+    #placeholder for the sequence
     placehold = puzzle.initial
-
+    #Calculate all legal actions
     legal_actions = puzzle.actions(placehold)
+
+    #Checks if ALL of the actions are legal
     if len(legal_actions) < len(action_seq):
         return "Failure"
 
+    #else puts actions into motion
     for action in action_seq:
         if action in puzzle.actions(placehold):
             placehold = puzzle.result(placehold, action)
 
+    #sets coords of worker and boxes
     puzzle.warehouse.worker = placehold[0]
     puzzle.warehouse.boxes = placehold[1:]
 
+    #Returns a map of the warehouse
     return puzzle.warehouse.__str__()
 
 
@@ -564,9 +611,13 @@ def solve_sokoban_elem(warehouse):
             If the puzzle is already in a goal state, simply return []
     '''
 
+    #Sets up puzzle
     puzzle = SokobanPuzzle(warehouse)
+
+    #Does A* search with predefined heuristic in the SokobanPuzzle()
     solution = search.astar_graph_search(puzzle)
 
+    #Checks if there is a solution
     if not solution:
         return ["Impossible"]
     else:
