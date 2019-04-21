@@ -631,7 +631,7 @@ def solve_sokoban_macro(warehouse):
     #retrieves the target position and direction the box is moved at each step    
     macro = []
     for node in solution.path()[1:-1]:
-        macro.append((tuple([int(s) for s in str(node)[7:-2][::-1] if s.isdigit()][:-2]),node.action))
+        macro.append((tuple([int(s) for s in str(node)[::-1] if s.isdigit()][:-2]),node.action))
     
     #Checks if there is a solution
     if not solution:
