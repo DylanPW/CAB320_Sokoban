@@ -27,6 +27,9 @@ import itertools
 import math
 import copy
 
+#for timing
+import time
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -329,22 +332,23 @@ class SokobanPuzzle(search.Problem):
         adjacent_cell_left = cell_adjacent(state[0], "Left")
         adjacent_cell_right = cell_adjacent(state[0], "Right")
 
+        #Checking of macro is true
         if not self.macro:
             worker_actions = []
             # check if valid cell is above.
-            if adjacent_cell_up not in self.warehouse.walls and adjacent_cell_up not in state[1:]:
+            if adjacent_cell_up not in self.warehouse.walls:
                 worker_actions.append ("Up")
 
             # check if valid cell is below.
-            if adjacent_cell_down not in self.warehouse.walls and adjacent_cell_down not in state[1:]:
+            if adjacent_cell_down not in self.warehouse.walls:
                 worker_actions.append("Down")
 
             # check if valid cell is to the left
-            if adjacent_cell_left not in self.warehouse.walls and adjacent_cell_left not in state[1:]:
+            if adjacent_cell_left not in self.warehouse.walls:
                 worker_actions.append("Left")
 
             # check if valid cell is to the right
-            if adjacent_cell_right not in self.warehouse.walls and adjacent_cell_right not in state[1:]:
+            if adjacent_cell_right not in self.warehouse.walls:
                 worker_actions.append("Right")
 
             return worker_actions
@@ -352,33 +356,57 @@ class SokobanPuzzle(search.Problem):
         else:
             box = []
             box_all = []
+            #Checking if boxes are allowed in taboo area
             if not self.allow_taboo_push:
                 for boxes in state[1:]:
-                    adjacent_box_up = cell_adjacent(adjacent_cell_up, "Up")
+
+                    # check if valid cell is above.
+                    adjacent_box_up = cell_adjacent(boxes, "Up")
+                    #Checks if there is a taboo square or wall or box in next cell
                     if adjacent_box_up not in self.taboo_list and adjacent_box_up not in self.warehouse.walls and adjacent_box_up not in state[1:]:
                         box.append("Up")
-                    adjacent_box_down = cell_adjacent(adjacent_cell_up, "Down")
+
+                    # check if valid cell is bellow.
+                    adjacent_box_down = cell_adjacent(boxes, "Down")
+                    #Checks if there is a taboo square or wall or box in next cell
                     if adjacent_box_down not in self.taboo_list and adjacent_box_down not in self.warehouse.walls and adjacent_box_down not in state[1:]:
                         box.append("Down")
-                    adjacent_box_left = cell_adjacent(adjacent_cell_up, "Left")
+
+                    # check if valid cell is to the left
+                    adjacent_box_left = cell_adjacent(boxes, "Left")
+                    #Checks if there is a taboo square or wall or box in next cell
                     if adjacent_box_left not in self.taboo_list and adjacent_box_left not in self.warehouse.walls and adjacent_box_left not in state[1:]:
                         box.append("Left")
-                    adjacent_box_right = cell_adjacent(adjacent_cell_right, "Right")
+
+                    # check if valid cell is to the right
+                    adjacent_box_right = cell_adjacent(boxes, "Right")
+                    #Checks if there is a taboo square or wall or box in next cell
                     if adjacent_box_right not in self.taboo_list and adjacent_box_right not in self.warehouse.walls and adjacent_box_right not in state[1:]:
                         box.append("Right")
                     box_all.append(box)
             else:
                 for boxes in state[1:]:
-                    adjacent_box_up = cell_adjacent(adjacent_cell_up, "Up")
+                    # check if valid cell is above.
+                    adjacent_box_up = cell_adjacent(boxes, "Up")
+                    #Checks if there is a or wall or box in next cell
                     if adjacent_box_up not in self.warehouse.walls and adjacent_box_up not in state[1:]:
                         box.append("Up")
-                    adjacent_box_down = cell_adjacent(adjacent_cell_up, "Down")
+
+                    # check if valid cell is bellow.
+                    adjacent_box_down = cell_adjacent(boxes, "Down")
+                    #Checks if there is a or wall or box in next cell
                     if adjacent_box_down not in self.warehouse.walls and adjacent_box_down not in state[1:]:
                         box.append("Down")
-                    adjacent_box_left = cell_adjacent(adjacent_cell_up, "Left")
+
+                    # check if valid cell is to the left.
+                    adjacent_box_left = cell_adjacent(boxes, "Left")
+                    #Checks if there is a or wall or box in next cell
                     if adjacent_box_left not in self.warehouse.walls and adjacent_box_left not in state[1:]:
                         box.append("Left")
-                    adjacent_box_right = cell_adjacent(adjacent_cell_right, "Right")
+
+                    # check if valid cell is to the right.
+                    adjacent_box_right = cell_adjacent(boxes, "Right")
+                    #Checks if there is a or wall or box in next cell
                     if adjacent_box_right not in self.warehouse.walls and adjacent_box_right not in state[1:]:
                         box.append("Right")
                     box_all.append(box)
@@ -623,6 +651,8 @@ def solve_sokoban_macro(warehouse):
         Otherwise return M a sequence of macro actions that solves the puzzle.
         If the puzzle is already in a goal state, simply return []
     '''
+    start = time.time()
+
     puzzle = SokobanPuzzle(warehouse)
 
     #Does A* search with predefined heuristic in the SokobanPuzzle()
@@ -633,6 +663,8 @@ def solve_sokoban_macro(warehouse):
     for node in solution.path()[1:-1]:
         macro.append((tuple([int(s) for s in str(node)[::-1] if s.isdigit()][:-2]),node.action))
     
+    end = time.time()
+    print(end - start)
     #Checks if there is a solution
     if not solution:
         return ["Impossible"]
