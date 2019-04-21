@@ -450,6 +450,7 @@ class SokobanPuzzle(search.Problem):
         list_of_targets = []
         list_of_targets = copy.deepcopy(self.warehouse.targets)       
 
+        box_targets_distance = []
         # get box and target coordinates and find distance from each other
         for box in boxes:
             # get box x and y
