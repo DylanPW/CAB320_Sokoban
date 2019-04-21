@@ -454,7 +454,7 @@ class SokobanPuzzle(search.Problem):
         min_dist = 0
 
         box_targets_dist = []
-        temp_list = []
+        
 
         # get box and target coordinates and find distance from each other
         for box in boxes:
@@ -463,6 +463,7 @@ class SokobanPuzzle(search.Problem):
             box_y = box[1]
 
             for target in list_of_targets:
+                temp = []
                 # get target x and y
                 target_x = target[0]
                 target_y = target[1]
