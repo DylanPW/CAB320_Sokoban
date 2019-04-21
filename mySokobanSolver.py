@@ -444,17 +444,11 @@ class SokobanPuzzle(search.Problem):
         assert(len(state)-1 == len(self.targets))
 
         # variables used
-        value = 0
-        first = True
-        dist = 0
+        value = 0        
         boxes = []
         boxes = copy.deepcopy(state[1:])
         list_of_targets = []
-        list_of_targets = copy.deepcopy(self.warehouse.targets)
-        min_dist = 0
-
-        box_targets_dist = []
-        
+        list_of_targets = copy.deepcopy(self.warehouse.targets)       
 
         # get box and target coordinates and find distance from each other
         for box in boxes:
