@@ -501,6 +501,12 @@ class SokobanPuzzle(search.Problem):
 
         # return the value
         return value
+    
+    
+    def h(self, node):
+        #Defining and returning the heuristic of the puzzle
+        #in this case just return the distance from node to box
+        return self.value(node.state)
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -562,9 +568,14 @@ def solve_sokoban_elem(warehouse):
             If the puzzle is already in a goal state, simply return []
     '''
 
-    ##         "INSERT YOUR CODE HERE"
+    puzzle = SokobanPuzzle(warehouse)
+    solution = search.astar_graph_search(puzzle)
 
-    raise NotImplementedError()
+    if not solution:
+        return ["Impossible"]
+    else:
+        return solution.solution()
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
