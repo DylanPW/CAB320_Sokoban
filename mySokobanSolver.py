@@ -623,7 +623,20 @@ def solve_sokoban_macro(warehouse):
         Otherwise return M a sequence of macro actions that solves the puzzle.
         If the puzzle is already in a goal state, simply return []
     '''
+    puzzle = SokobanPuzzle(warehouse)
 
+    #Does A* search with predefined heuristic in the SokobanPuzzle()
+    solution = search.astar_graph_search(puzzle)
+        
+    macro = []
+    for node in solution.path()[1:]:
+        macro.append((node.parent,node.action))
+    
+    #Checks if there is a solution
+    if not solution:
+        return ["Impossible"]
+    else:
+        return macro
     ##         "INSERT YOUR CODE HERE"
 
     raise NotImplementedError()
