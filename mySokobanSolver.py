@@ -237,8 +237,8 @@ def cell_adjacent(cell, direction):
 def add_tuples(tuple1, tuple2):
     return tuple1[0] + tuple2[0], tuple1[1] + tuple2[1]
 
-# find the path 
-class FindPathProblem(search.Problem):   
+# find the path
+class FindPathProblem(search.Problem):
 
     def __init__(self, initial, warehouse, goal=None):
         self.initial = initial
@@ -247,12 +247,12 @@ class FindPathProblem(search.Problem):
 
     # each movement has a cost of one
     def value(self, state):
-        return 1  
+        return 1
 
 
     # return the new state with the relevant action applied
     def result(self, state, action):
-        
+
         new_state = add_tuples(state, action)
         return new_state
 
@@ -332,19 +332,19 @@ class SokobanPuzzle(search.Problem):
         if not self.macro:
             worker_actions = []
             # check if valid cell is above.
-            if adjacent_cell_up not in self.warehouse.walls and adjacent_cell_up not in state[1:]:
+            if adjacent_cell_up not in self.warehouse.walls:
                 worker_actions.append ("Up")
 
             # check if valid cell is below.
-            if adjacent_cell_down not in self.warehouse.walls and adjacent_cell_down not in state[1:]:
+            if adjacent_cell_down not in self.warehouse.walls:
                 worker_actions.append("Down")
 
             # check if valid cell is to the left
-            if adjacent_cell_left not in self.warehouse.walls and adjacent_cell_left not in state[1:]:
+            if adjacent_cell_left not in self.warehouse.walls:
                 worker_actions.append("Left")
 
             # check if valid cell is to the right
-            if adjacent_cell_right not in self.warehouse.walls and adjacent_cell_right not in state[1:]:
+            if adjacent_cell_right not in self.warehouse.walls:
                 worker_actions.append("Right")
 
             return worker_actions
@@ -444,11 +444,11 @@ class SokobanPuzzle(search.Problem):
         assert(len(state)-1 == len(self.targets))
 
         # variables used
-        value = 0        
+        value = 0
         boxes = []
         boxes = copy.deepcopy(state[1:])
         list_of_targets = []
-        list_of_targets = copy.deepcopy(self.warehouse.targets)       
+        list_of_targets = copy.deepcopy(self.warehouse.targets)
 
         box_targets_distance = []
         # get box and target coordinates and find distance from each other
@@ -497,8 +497,8 @@ class SokobanPuzzle(search.Problem):
 
         # return the value
         return value
-    
-    
+
+
     def h(self, node):
         #Defining and returning the heuristic of the puzzle
         #in this case just return the distance from node to box
@@ -592,7 +592,7 @@ def can_go_there(warehouse, dst):
             # distance formula heuristic (sqrt(xdiff^2 + ydiff^2).
         return math.sqrt(((state[1] - dst[1]) ** 2) + ((state[0] - dst[0]) ** 2))
 
-    dst = (dst[1], dst[0]) 
+    dst = (dst[1], dst[0])
     # destination is given in (row,col), not (x,y)
 
     # use an A* graph search on the using the find path problem search.
